@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Contact;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @extends ServiceEntityRepository<Contact>
@@ -17,47 +16,56 @@ class ContactRepository extends ServiceEntityRepository
         parent::__construct($registry, Contact::class);
     }
 
-    //    /**
-    //     * @return Contact[] Returns an array of Contact objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Contact
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
-
     /**
      * @return Contact[] Returns an array of Contact objects
      */
-    public function search(string $search): array
+    public function paginate(int $page, int $limit, string $status = 'all', ?string $search = null): array
     {
-        $qb = $this->createQueryBuilder('c');
-        return $qb
-            ->andWhere(
+        $offset = ($page - 1) * $limit;
+
+        $qb = $this->createQueryBuilder('c')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->orderBy('c.createdAt', 'DESC');
+
+        if ($status !== 'all') {
+            $qb->andWhere('c.status = :status')
+               ->setParameter('status', $status);
+        }
+
+        if ($search) {
+            $qb->andWhere(
                 $qb->expr()->orX(
                     $qb->expr()->like('c.firstName', ':search'),
-                    $qb->expr()->like('c.name', ':search'),
-                ),
+                    $qb->expr()->like('c.name', ':search')
+                )
             )
-            ->setParameter('search', '%'.$search.'%')
-            ->getQuery()
-            ->getResult()
-            ;
+            ->setParameter('search', '%'.$search.'%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countFiltered(string $status = 'all', ?string $search = null): int
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)');
+
+        if ($status !== 'all') {
+            $qb->andWhere('c.status = :status')
+               ->setParameter('status', $status);
+        }
+
+        if ($search) {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->like('c.firstName', ':search'),
+                    $qb->expr()->like('c.name', ':search')
+                )
+            )
+            ->setParameter('search', '%'.$search.'%');
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 }
