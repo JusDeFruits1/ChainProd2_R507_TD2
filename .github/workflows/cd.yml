@@ -14,16 +14,15 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v3
-        - name: Deploy to VPS
+        - name: Deploy to FTP Server
           uses: SamKirkland/FTP-Deploy-Action@v4.3.6
           with:
             server: ${{ secrets.FTP_HOST }}
-            host: ${{ secrets.FTP_HOST }}
             username: ${{ secrets.FTP_USER }}
             password: ${{ secrets.FTP_PASSWORD }}
             port: ${{ secrets.FTP_PORT }}
             script: |
                 cd /var/www/myapp
                 git pull origin main
-                composer install --no-dev
+                composer install --no-scripts --no-dev
                 php bin/console cache:clear
