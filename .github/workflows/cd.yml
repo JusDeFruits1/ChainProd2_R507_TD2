@@ -1,28 +1,34 @@
 name: CD
-on: [push]
+on:
+  push:
+    branches:
+      - develop
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions/checkout@v3
-        - uses: shivammathur/setup-php@v2
-          with:
-            php-version: '8.2'
-        - name: Run tests
-          run: echo "Running tests..."
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo_sqlite
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist
+      - run: vendor/bin/phpunit --testdox --colors=always
 
-        - run: composer install
-        - run: php bin/phpunit
+  deploy:
+    needs: [test]
+    if: ${{ success() }}
+    env:
+      APP_ENV: prod
+      APP_DEBUG: 0
+    runs-on: ubuntu-latest
     
-    deploy:
-        needs: [test]
-        if: github.ref == 'refs/heads/develop'
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions/checkout@v3
-        - name: Deploy to FTP Server
-          uses: SamKirkland/FTP-Deploy-Action@v4.3.6
-          with:
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to FTP Server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
             server: ${{ secrets.FTP_HOST }}
             username: ${{ secrets.FTP_USER }}
             password: ${{ secrets.FTP_PASSWORD }}
