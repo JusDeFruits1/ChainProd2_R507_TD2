@@ -1,0 +1,42 @@
+stages:
+  - test
+  - cleanup
+
+variables:
+  COMPOSER_ALLOW_SUPERUSER: "1"
+  COMPOSER_MEMORY_LIMIT: "-1"
+
+cache:
+  key: "${CI_COMMIT_REF_SLUG}"
+  paths:
+    - vendor/
+
+phpunit:
+  image: php:8.2-cli
+  stage: test
+  before_script:
+    - apt-get update -yqq
+    - apt-get install -yqq unzip zip git libsqlite3-dev
+    - docker-php-ext-install pdo_sqlite
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  script:
+    - composer install --no-progress --prefer-dist --no-interaction --no-scripts
+    - mkdir -p var
+    - touch var/test_sqlite.db
+    - export APP_BASE_DOMAIN=localhost
+    - export DATABASE_URL="sqlite://$CI_PROJECT_DIR/var/test_sqlite.db"
+    - php bin/phpunit --testdox
+  artifacts:
+    paths:
+      - var/test_sqlite.db
+    expire_in: 1 hour
+
+cleanup_db:
+  image: alpine:3.18
+  stage: cleanup
+  dependencies:
+    - phpunit
+  script:
+    - echo "Cleaning up test sqlite file"
+    - if [ -f var/test_sqlite.db ]; then rm -f var/test_sqlite.db; fi
+  when: always
