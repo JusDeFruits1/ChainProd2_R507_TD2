@@ -17,7 +17,7 @@ jobs:
         - name: Deploy to VPS
           uses: SamKirkland/FTP-Deploy-Action@v4.3.6
           with:
-            server: ftpiut21.u-bourgogne.fr/file
+            server: ${{ secrets.FTP_HOST }}
             host: ${{ secrets.FTP_HOST }}
             username: ${{ secrets.FTP_USER }}
             password: ${{ secrets.FTP_PASSWORD }}
