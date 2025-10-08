@@ -8,11 +8,6 @@ use App\Entity\Contact;
 
 class MainControllerTest extends WebTestCase
 {
-	protected static function getKernelClass(): string
-	{
-		return \App\Kernel::class;
-	}
-
 	public function testSubmitContactPersists()
 	{
 		$projectDir = dirname(__DIR__);
@@ -58,7 +53,7 @@ class MainControllerTest extends WebTestCase
 		$this->assertCount(1, $results, 'Un contact doit avoir été persisté en base.');
 		$contact = $results[0];
 		$this->assertSame('Message de test', $contact->getMessage());
-		$this->assertSame('pending', $contact->getStatus());
+		$this->assertSame('New', $contact->getStatus());
 		$this->assertNotNull($contact->getCreatedAt());
 	}
 

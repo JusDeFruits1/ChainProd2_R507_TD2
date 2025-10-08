@@ -56,7 +56,7 @@ final class MainController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $contact->setCreatedAt(new \DateTimeImmutable('now'));
-            $contact->setStatus('pending');
+            $contact->setStatus('New');
             $em->persist($contact);
             $em->flush();
 
@@ -75,9 +75,9 @@ final class MainController extends AbstractController
         $search = $request->query->get('search');
         $contacts = $search
             ? $repository->search($search)
-            : ($status === 'all')
-            ? $repository->findAll()
-            : $repository->findBy(['status' => $status]);
+            : ($status === 'all'
+                ? $repository->findAll()
+                : $repository->findBy(['status' => $status]));
 
         return $this->render('main/list.html.twig', [
             'contacts' => $contacts,
