@@ -5,8 +5,14 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v3
+        - uses: shivammathur/setup-php@v2
+          with:
+            php-version: '8.2'
         - name: Run tests
           run: echo "Running tests..."
+
+        - run: composer install
+        - run: php bin/phpunit
     
     deploy:
         needs: test
@@ -21,6 +27,7 @@ jobs:
             username: ${{ secrets.FTP_USER }}
             password: ${{ secrets.FTP_PASSWORD }}
             port: ${{ secrets.FTP_PORT }}
+            server-dir: /www/tpchainedeprodR507/
             script: |
                 cd /var/www/myapp
                 git pull origin main
