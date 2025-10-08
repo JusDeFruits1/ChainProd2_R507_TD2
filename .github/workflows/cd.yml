@@ -10,7 +10,7 @@ jobs:
     
     deploy:
         needs: test
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/develop'
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v3
@@ -18,9 +18,10 @@ jobs:
           uses: SamKirkland/FTP-Deploy-Action@v4.3.6
           with:
             server: ftpiut21.u-bourgogne.fr/file
-            host: ${{ secrets.VPS_HOST }}
-            username: ${{ secrets.VPS_USER }}
-            port: ${{ secrets.VPS_PORT }}
+            host: ${{ secrets.FTP_HOST }}
+            username: ${{ secrets.FTP_USER }}
+            password: ${{ secrets.FTP_PASSWORD }}
+            port: ${{ secrets.FTP_PORT }}
             script: |
                 cd /var/www/myapp
                 git pull origin main
