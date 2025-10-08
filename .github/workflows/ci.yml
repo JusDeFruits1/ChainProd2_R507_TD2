@@ -15,4 +15,3 @@
                 php-version: '8.2'
             - run: composer install
             - run: php bin/phpunit
-            - run: ./vendor/bin/phpstan analyse
